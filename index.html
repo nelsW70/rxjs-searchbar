@@ -101,10 +101,21 @@
 
       let searchInput = document.getElementById('search-input');
       Rx.Observable.fromEvent(searchInput, 'input')
-      .pluck('target', 'value')
-      .filter(searchTerm => searchTerm.length > 2)
-      .debounceTime(500)
-      .distinctUntilChanged()
+        .pluck('target', 'value')
+        .filter((searchTerm) => searchTerm.length > 2)
+        .debounceTime(500)
+        .distinctUntilChanged()
+        .switchMap((searchKey) =>
+          Rx.Observable.ajax(
+            `https://api.crossref.org/works?rows=50&query.author=${searchKey}`
+          ).map((resp) => ({
+            status: resp['status'] == 200,
+            details: resp['status'] == 200 ? resp['response'] : [],
+            result_hash: Date.now(),
+          }))
+        )
+        .filter((resp) => resp.status !== false)
+        .distinctUntilChanged((a, b) => a.result_hash === b.result_hash);
     </script>
   </body>
 </html>
