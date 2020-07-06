@@ -100,7 +100,11 @@
       }
 
       let searchInput = document.getElementById('search-input');
-      Rx.Observable.fromEvent(searchInput, 'input');
+      Rx.Observable.fromEvent(searchInput, 'input')
+      .pluck('target', 'value')
+      .filter(searchTerm => searchTerm.length > 2)
+      .debounceTime(500)
+      .distinctUntilChanged()
     </script>
   </body>
 </html>
